@@ -11,7 +11,7 @@ extern crate iron;
 // Import necessary types from crates.
 
 use exonum::blockchain::{Blockchain, Service, GenesisConfig, ValidatorKeys, Transaction,
-                         ApiContext};
+                         ApiContext, Schema};
 use exonum::node::{Node, NodeConfig, NodeApiConfig, TransactionSend, ApiSender};
 use exonum::messages::{RawTransaction, FromRaw, Message};
 use exonum::storage::{Fork, MemoryDB, MapIndex};
@@ -125,6 +125,21 @@ message! {
     }
 }
 
+
+/// PKI Txn implementation.
+message! {
+    struct TxPKI {
+        const TYPE = SERVICE_ID;
+        const ID = TX_TRANSFER_ID;
+        const SIZE = 80;
+
+        field sender:       &PublicKey  [00 => 32]
+        field pubKey:       &PublicKey  [32 => 64]
+        field prevKeyHash:  u64         [64 => 72]
+        field seedHash:     u64         [72 => 80]
+    }
+}
+
 // // // // // // // // // // CONTRACTS // // // // // // // // // //
 
 /// Execute a transaction.
@@ -181,6 +196,20 @@ impl Transaction for TxTransfer {
     fn info(&self) -> serde_json::Value {
         serde_json::to_value(&self).expect("Cannot serialize transaction to JSON")
     }
+}
+
+impl Transaction for TxPKI {
+    fn verify(&self) -> bool {
+        // let schema = Schema { view?? }
+        // На каком этапе вызывается verify() транзакции?
+        // Откуда передавать view в метод?
+        self.verify_signature(self.owner())
+    }
+    fn execute(&self, view: &mut Fork) {
+        let mut schema = Schema { view };
+        // Клиент хранит слишком много сущностей в локальной БД!
+    }
+    fn info(&self) -> serde_json::Value {}
 }
 
 // // // // // // // // // // REST API // // // // // // // // // //

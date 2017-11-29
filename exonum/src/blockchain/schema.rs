@@ -69,6 +69,11 @@ where
         MapIndex::new("core.transactions", &self.view)
     }
 
+    /// Returns particular transaction.
+    pub fn transaction(&self, hash: &Hash) -> Option<T> {
+        self.transactions().get(hash)
+    }
+
     /// Returns table that keeps the block height and tx position inside block for every
     /// transaction hash.
     pub fn tx_location_by_tx_hash(&self) -> MapIndex<&T, Hash, TxLocation> {
